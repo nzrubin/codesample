@@ -1,17 +1,13 @@
 <?php
 
-
 class FoodServicePage extends Page{
 	
 	private static $allowed_children = array(
 		'BurgerBuilderPage'
-	);
-	
+	);	
 	private static $has_many = array(
 		'Burgers' => 'BurgerComponents'
-	);
-	
-	
+	);		
 	public function getCMSFields() {
         $fields = parent::getCMSFields();
         $fields->addFieldToTab('Root.BurgerComponents', GridField::create(
@@ -32,7 +28,6 @@ class FoodServicePage extends Page{
 //===================
 //===================
 //===================
-
 class FoodServicePage_Controller extends Page_Controller{
 	
 		private static $allowed_actions = array(
@@ -40,65 +35,61 @@ class FoodServicePage_Controller extends Page_Controller{
 			'NeedAnAccountForm',
 			'FoodServiceDiscountForm',
 			'logout'
-		);
-		
+		);		
 		public function init(){
-			parent::init();
-						
+			parent::init();		
+			//====================================================
 			//== SENDING EMAIL FROM CMS CUSTOMERS AND CODE SECTION
 			//== SENDING EMAIL FROM CMS CUSTOMERS AND CODE SECTION
 			//== SENDING EMAIL FROM CMS CUSTOMERS AND CODE SECTION
 			if(isset($_GET['v'])){
 				if($_GET['v']== 'dr891a5'){
 				$error = '';										
-						if(!$_GET['message']){
-							$error = 'Error: Enter a message and save, please';
-						}								
-						if(!$_GET['email']){
-							$error = 'Error: Enter email address and save, please ';
+					if(!$_GET['message']){
+						$error = 'Error: Enter a message and save, please';
+					}								
+					if(!$_GET['email']){
+						$error = 'Error: Enter email address and save, please ';
+					}
+					if(!$_GET['subject']){
+						$error = 'Error: Enter a subject and save, please';
+					}
+
+					if (!filter_var($_GET['email'], FILTER_VALIDATE_EMAIL) === false) {								  
+					} else {
+					  $error = 'Error: enter a valid email and save, please';
+					}
+
+					if($error == ''){	// all good send email							
+						// GET PDF INFO
+						// GET PDF INFO
+						// GET PDF INFO
+						$pdfsID = AdminProperties::get()->where('InUse = 1');						
+							$registerPdfID = $pdfsID[0]->AccountApplicationFormID;
+							$debitPdfID = $pdfsID[0]->DirectDebitFormID;
+
+								$registerFormPath = File::get()->where('ID = '.$registerPdfID);
+								$registerFormPath = $registerFormPath[0]->Filename; // path to register pdf
+
+								$debitFormPath = File::get()->where('ID = '.$debitPdfID);
+								$debitFormPath = $debitFormPath[0]->Filename; // path to direct debit pdf
+						// END GET PDF INFO
+						// END GET PDF INFO
+						// END GET PDF INFO
+						//=================
+						if($_SERVER['HTTP_HOST'] != 'localhost'){
+							date_default_timezone_set('NZ');
+							$email = new Email();
+							$email->setTo($_GET['email'].','.$_GET['member']); 
+							$email->setFrom('info@rocketproducts.co.nz');  
+							$email->setSubject($_GET['subject']); 
+							$messageBody = $_GET['message']; 
+							$email->setBody($messageBody); 											
+							$email->attachFile($registerFormPath);
+							$email->attachFile($debitFormPath);
+							$email->send(); // to customer
 						}
-						if(!$_GET['subject']){
-							$error = 'Error: Enter a subject and save, please';
-						}
-						
-						if (!filter_var($_GET['email'], FILTER_VALIDATE_EMAIL) === false) {								  
-						} else {
-						  $error = 'Error: enter a valid email and save, please';
-						}
-						
-						
-						
-						
-						if($error == ''){	// all good send email							
-							// GET PDF INFO
-							// GET PDF INFO
-							// GET PDF INFO
-							$pdfsID = AdminProperties::get()->where('InUse = 1');						
-								$registerPdfID = $pdfsID[0]->AccountApplicationFormID;
-								$debitPdfID = $pdfsID[0]->DirectDebitFormID;
-								
-									$registerFormPath = File::get()->where('ID = '.$registerPdfID);
-									$registerFormPath = $registerFormPath[0]->Filename; // path to register pdf
-									
-									$debitFormPath = File::get()->where('ID = '.$debitPdfID);
-									$debitFormPath = $debitFormPath[0]->Filename; // path to direct debit pdf
-							// END GET PDF INFO
-							// END GET PDF INFO
-							// END GET PDF INFO
-							if($_SERVER['HTTP_HOST'] != 'localhost'){
-								date_default_timezone_set('NZ');
-								$email = new Email();
-								$email->setTo($_GET['email'].','.$_GET['member']); 
-								$email->setFrom('info@rocketproducts.co.nz');  
-								$email->setSubject($_GET['subject']); 
-								$messageBody = $_GET['message']; 
-								$email->setBody($messageBody); 											
-								$email->attachFile($registerFormPath);
-								$email->attachFile($debitFormPath);
-								$email->send(); // to customer
-							}
-						}
-							
+					}							
 					
 					if($error != ''){
 						$out = $error;
@@ -125,9 +116,7 @@ class FoodServicePage_Controller extends Page_Controller{
 				}// END GET
 			}
 			// === END SENDING EMAIL FROM CMS
-			
-			
-			
+			//===============================
 			
 			Requirements::css("{$this->ThemeDir()}/css/foodService.css");
 			Requirements::css("http://vjs.zencdn.net/5.0.2/video-js.css");
@@ -136,13 +125,10 @@ class FoodServicePage_Controller extends Page_Controller{
 			Requirements::javascript("{$this->ThemeDir()}/js/foodService.js");
 			Requirements::javascript("{$this->ThemeDir()}/js/jquery.appear.js");
 			
-		
-			
-			//===============================================
+			//=======================================================
 			//=== PAGES ACCESS WITH "ACTION" TYPED WILL BE REDIRECTED
 			//=== PAGES ACCESS WITH "ACTION" TYPED WILL BE REDIRECTED
-			//=== PAGES ACCESS WITH "ACTION" TYPED WILL BE REDIRECTED
-			
+			//=== PAGES ACCESS WITH "ACTION" TYPED WILL BE REDIRECTED			
 			$theAction = $this->urlParams['Action'];
 			if(!$_POST){
 				if($theAction == 'OrderOnAccountForm' 
@@ -152,9 +138,7 @@ class FoodServicePage_Controller extends Page_Controller{
 				$this->redirect($this->URLSegment.'/');
 				}				
 			}
-			
-			
-			//=======================================
+			//=========================================
 			//== 	LOGOUT DESTROY FOOD SERVICE SESSION
 			//== 	LOGOUT DESTROY FOOD SERVICE SESSION
 			//== 	LOGOUT DESTROY FOOD SERVICE SESSION
@@ -165,8 +149,6 @@ class FoodServicePage_Controller extends Page_Controller{
 			}		
 			
 		} // END init()
-		
-		
 		
 		//============================
 		//==== GET ALL CUSTOMERS INFO -- LOCAL
@@ -186,7 +168,7 @@ class FoodServicePage_Controller extends Page_Controller{
 				'Code'=> Session::get('FoodServiceSesssion')));
 		}
 		
-		//======================
+		//==================
 		//=== GET CODES INFO
 		//=== GET CODES INFO
 		//=== GET CODES INFO
@@ -206,7 +188,7 @@ class FoodServicePage_Controller extends Page_Controller{
 			}
 		}
 		
-		//===========================================================
+		//============================================================
 		// ONLY DISCONT VALUE % FOR FOOD-SERVICE PAGE PRODUCTS ROLLING
 		// ONLY DISCONT VALUE % FOR FOOD-SERVICE PAGE PRODUCTS ROLLING
 		// ONLY DISCONT VALUE % FOR FOOD-SERVICE PAGE PRODUCTS ROLLING
@@ -218,8 +200,7 @@ class FoodServicePage_Controller extends Page_Controller{
 			}
 		}
 		
-		
-		//========================================================!!!
+		//============================================!!!
 		//==== GET PRUDUCTS INFO + BURGER RECIPES INFO		
 		//==== GET PRUDUCTS INFO + BURGER RECIPES INFO		
 		//==== GET PRUDUCTS INFO + BURGER RECIPES INFO		
@@ -256,13 +237,12 @@ class FoodServicePage_Controller extends Page_Controller{
 				return $out;			
 		} //== END
 		
-		//===============================
+		//==============================
 		//==== ROOL FOOD SERVICE CONTENT
 		//==== ROOL FOOD SERVICE CONTENT
 		//==== ROOL FOOD SERVICE CONTENT
 		//==== ROOL FOOD SERVICE CONTENT		
-		public function DisplayFoodServiceTable(){		
-
+		public function DisplayFoodServiceTable(){
 			if($this->CurrentCustomerInfo()->exists()) {
 				foreach($this->CurrentCustomerInfo() as $value){
 						$code = $value->Code;
@@ -271,9 +251,9 @@ class FoodServicePage_Controller extends Page_Controller{
 					}				
 				}
 			}	
-			
 		}// END
 		
+		//========================================================
 		//=== RETURN CURRENT MESSAGE FOR PROMOTIONAL CODES SECTION
 		//=== RETURN CURRENT MESSAGE FOR PROMOTIONAL CODES SECTION
 		//=== RETURN CURRENT MESSAGE FOR PROMOTIONAL CODES SECTION		
@@ -284,11 +264,6 @@ class FoodServicePage_Controller extends Page_Controller{
 				}				
 			}
 		}
-		
-		
-		
-		
-		
 		//============================================================================================
 		//============================================================================================
 		//================================= FORMS FORMS FORMS ========================================
@@ -313,9 +288,6 @@ class FoodServicePage_Controller extends Page_Controller{
 		//================================= FORMS FORMS FORMS ========================================
 		//================================= FORMS FORMS FORMS ========================================
 		//================================= FORMS FORMS FORMS ========================================
-	
-		
-		
 		
 		
 		//==========================
@@ -338,6 +310,8 @@ class FoodServicePage_Controller extends Page_Controller{
 			$form = new Form($this, 'OrderOnAccountForm', $fields, $actions, $validator);
 				return $form;		
 		}// END
+	
+		//=========
 		//== SUBMIT
 		//== SUBMIT
 		//== SUBMIT
@@ -365,20 +339,13 @@ class FoodServicePage_Controller extends Page_Controller{
 					return $this->lockedOutWait('no1');				
 				}
 			}// END $_POST['checker']
-		}//==END
-		
+		}//==END		
 		//====== END ORDER ON ACCONT FORM
 		//============================================================================================
 		//============================================================================================
 		//============================================================================================
 		//============================================================================================
-		
-		
-		
-		
-		
-		
-		
+				
 		//=========================
 		//=== NEED AN ACCOUNT FORM 22222222222222222222222222222222
 		//=== NEED AN ACCOUNT FORM
@@ -399,96 +366,82 @@ class FoodServicePage_Controller extends Page_Controller{
 			$validator = new RequiredFields('NewEmail');	
 			return new Form($this, 'NeedAnAccountForm', $fields, $actions, $validator);
 		}
+	
+		//=========
 		//== SUBMIT
 		//== SUBMIT
 		//== SUBMIT
 		//== SUBMIT
 		public function NeedAnAccountFormSubmit($data, $form) {	
-						if($_POST['checker'] == ''){ // spam protection
-							
-						// GET PDF INFO
-						// GET PDF INFO
-						// GET PDF INFO
-						$pdfsID = AdminProperties::get()->where('InUse = 1');						
-							$registerPdfID = $pdfsID[0]->AccountApplicationFormID;
-							$debitPdfID = $pdfsID[0]->DirectDebitFormID;
-							
-								$registerFormPath = File::get()->where('ID = '.$registerPdfID);
-								$registerFormPath = $registerFormPath[0]->Filename; // path to register pdf
-								
-								$debitFormPath = File::get()->where('ID = '.$debitPdfID);
-								$debitFormPath = $debitFormPath[0]->Filename; // path to direct debit pdf
-						// END GET PDF INFO
-						// END GET PDF INFO
-						// END GET PDF INFO
-						
-						
-						
-						if($_SERVER['HTTP_HOST'] != 'localhost'){
-							date_default_timezone_set('NZ');
-							$email = new Email();
-							$email->setTo($data["NewEmail"]); 
-							$email->setFrom('info@rocketproducts.co.nz');  
-							$email->setSubject('Rocketproducts Food Service registration'); 
-							$messageBody = 'Dear customer, thank you for your interest. Find files attached please. <br />The form can be returned by email or faxed to 04 5689291'; 
-							$email->setBody($messageBody); 											
-							$email->attachFile($registerFormPath);
-							$email->attachFile($debitFormPath);
-							$email->send(); // to customer
-							
-							
-							// SEND TO US TO LET US KNOW
-							// SEND TO US TO LET US KNOW
-							$email = new Email();
-							$email->setTo('info@rocketproducts.co.nz'); 
-							$email->setFrom('admin@rocketproducts.co.nz');  
-							$email->setSubject('Rocketproducts Food Service registration'); 
-							$messageBody = 'This is automated message. <br />a User '.$data["NewEmail"].' <br /> just registered at the Food Service section. <br />
-							two registration forms were emailed to the user.<br /><br /> If the user is real, he will mail the forms to us and we will need to enter his details at the food service section'; 
-							$email->setBody($messageBody); 
-							$email->send(); // to customer
-							
-							
-							
-								
-								// INSERT EMAIL TO DB
-								$insert = SQLInsert::create('CustomersAndCode');
-								$insert->addRows(array(
-									array(
-									'Created' => date("Y-m-d H:i:s"),
-									'CompanyName' => 'New Entry at '.date('d M Y'),
-									'Code' => $data["NewEmail"]
-									)
-								));
-								$insert->execute();
-						}
-							
-							
-							
-							
-							if(Director::is_ajax()) {
-								$data = array('yes2' => 'yes2');
-								return json_encode($data);
-							}else{
-								$data = array('no2' => 'no2');
-								return json_encode($data);
-							}
-			
-						}// END if($_POST['checker'] == ''){
+			if($_POST['checker'] == ''){ // spam protection							
+			// GET PDF INFO
+			// GET PDF INFO
+			// GET PDF INFO
+			$pdfsID = AdminProperties::get()->where('InUse = 1');						
+				$registerPdfID = $pdfsID[0]->AccountApplicationFormID;
+				$debitPdfID = $pdfsID[0]->DirectDebitFormID;
+
+					$registerFormPath = File::get()->where('ID = '.$registerPdfID);
+					$registerFormPath = $registerFormPath[0]->Filename; // path to register pdf
+
+					$debitFormPath = File::get()->where('ID = '.$debitPdfID);
+					$debitFormPath = $debitFormPath[0]->Filename; // path to direct debit pdf
+			// END GET PDF INFO
+			// END GET PDF INFO
+			// END GET PDF INFO
+
+			if($_SERVER['HTTP_HOST'] != 'localhost'){
+				date_default_timezone_set('NZ');
+				$email = new Email();
+				$email->setTo($data["NewEmail"]); 
+				$email->setFrom('info@rocketproducts.co.nz');  
+				$email->setSubject('Rocketproducts Food Service registration'); 
+				$messageBody = 'Dear customer, thank you for your interest. Find files attached please. <br />The form can be returned by email or faxed to 04 5689291'; 
+				$email->setBody($messageBody); 											
+				$email->attachFile($registerFormPath);
+				$email->attachFile($debitFormPath);
+				$email->send(); // to customer
+
+				//==========================
+				// SEND TO US TO LET US KNOW
+				// SEND TO US TO LET US KNOW
+				$email = new Email();
+				$email->setTo('info@rocketproducts.co.nz'); 
+				$email->setFrom('admin@rocketproducts.co.nz');  
+				$email->setSubject('Rocketproducts Food Service registration'); 
+				$messageBody = 'This is automated message. <br />a User '.$data["NewEmail"].' <br /> just registered at the Food Service section. <br />
+				two registration forms were emailed to the user.<br /><br /> If the user is real, he will mail the forms to us and we will need to enter his details at the food service section'; 
+				$email->setBody($messageBody); 
+				$email->send(); // to customer
+
+					//==================
+					// INSERT EMAIL TO DB
+					$insert = SQLInsert::create('CustomersAndCode');
+					$insert->addRows(array(
+						array(
+						'Created' => date("Y-m-d H:i:s"),
+						'CompanyName' => 'New Entry at '.date('d M Y'),
+						'Code' => $data["NewEmail"]
+						)
+					));
+					$insert->execute();
+			}	
+
+				if(Director::is_ajax()) {
+					$data = array('yes2' => 'yes2');
+					return json_encode($data);
+				}else{
+					$data = array('no2' => 'no2');
+					return json_encode($data);
+				}
+
+			}// END if($_POST['checker'] == ''){
 		}//==END
-		
 		//======= END NEED AN ACCOUNT FORM
 		//========================================================================================
 		//========================================================================================
 		//========================================================================================
 		//========================================================================================
-		
-		
-		
-		
-		
-		
-
 		
 		//==============================
 		//=== FOOD SERVICE DISCOUNT CODE
@@ -509,6 +462,7 @@ class FoodServicePage_Controller extends Page_Controller{
 					return $form;
 			}		
 
+		//=========
 		//== SUBMIT
 		//== SUBMIT
 		//== SUBMIT
@@ -549,7 +503,5 @@ class FoodServicePage_Controller extends Page_Controller{
 		// == END FOOD SERVICE DISCOUNT CODE
 		// == END FOOD SERVICE DISCOUNT CODE
 		//==================================
-		
-	
 }
 
